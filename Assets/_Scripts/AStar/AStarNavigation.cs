@@ -1,10 +1,9 @@
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 
 namespace BS.Pathfinding
 {
-    public class AStar : MonoBehaviour
+    public class AStarNavigation : MonoBehaviour
     {
         public List<Node> AllNodes = new List<Node>();
 

@@ -3,13 +3,13 @@ using UnityEngine;
 
 namespace BS.Pathfinding
 {
-    [CustomEditor(typeof(AStar))]
+    [CustomEditor(typeof(AStarNavigation))]
     public class AStarInspectorEditor : Editor
     {
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
-            AStar aStar = (AStar)target;
+            AStarNavigation aStar = (AStarNavigation)target;
 
             if (GUILayout.Button("Refresh all nodes"))
             {

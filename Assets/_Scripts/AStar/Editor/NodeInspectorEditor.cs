@@ -27,7 +27,16 @@ namespace BS.Pathfinding
 
             GameObject activeObject = Selection.activeGameObject;
 
-            if(activeObject == null || !activeObject.TryGetComponent(out Node targetNode) || node == null)
+            if (activeObject == null || node == null)
+            {
+                return;
+            }
+
+            if(!activeObject.TryGetComponent(out Node targetNode) && activeObject.TryGetComponent(out ParkingSpot foundSpot))
+            {
+                targetNode = foundSpot.AssignedNode;
+            }
+            else if (targetNode == null)
             {
                 return;
             }

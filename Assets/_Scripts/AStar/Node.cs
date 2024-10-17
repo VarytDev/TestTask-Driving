@@ -1,9 +1,11 @@
+using System;
 using UnityEngine;
 
 namespace BS.Pathfinding
 {
 	public class Node : MonoBehaviour
 	{
+		public Action OnRequestPlayer = default;
 		public Node[] Neighbors = new Node[0];
 
 		public float CalculateCost(Node targetNode)
