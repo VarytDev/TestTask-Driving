@@ -611,6 +611,14 @@ PrefabInstance:
       value: 180
       objectReference: {fileID: 0}
     - target: {fileID: 5225203304800611367, guid: 8230bea33aca7674ab169e8126c5c141, type: 3}
+      propertyPath: carSpeed
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5225203304800611367, guid: 8230bea33aca7674ab169e8126c5c141, type: 3}
+      propertyPath: pathType
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5225203304800611367, guid: 8230bea33aca7674ab169e8126c5c141, type: 3}
       propertyPath: navigationComponent
       value: 
       objectReference: {fileID: 336919574}
