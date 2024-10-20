@@ -127,37 +127,44 @@ public class CarMovementController : MonoBehaviour
         }
     }
 
-    //TODO Refactor further
     private BezierPoint[] GenerateBezierControlPoints(Vector3[] pathCoordinates)
     {
         BezierPoint[] bezierPoints = new BezierPoint[pathCoordinates.Length];
 
-        //first point
-        Vector3 directionToNextPoint = pathCoordinates[0].DirectionFromTo(pathCoordinates[1]) * bezierControlPointDistance;
-        BezierPoint bezierPoint = new BezierPoint(pathCoordinates[0]);
-        bezierPoint.ControlPointTowardsNext = pathCoordinates[0] + directionToNextPoint;
-        bezierPoints[0] = bezierPoint;
+        HandleFirstPoint(0);
 
-        //middle points
         for (int i = 1; i < pathCoordinates.Length - 1; i++)
         {
             Vector3 directionFromPreviousPoint = pathCoordinates[i - 1].DirectionFromTo(pathCoordinates[i]);
             Vector3 directionFromNextPoint = pathCoordinates[i + 1].DirectionFromTo(pathCoordinates[i]);
             Vector3 directionForControlPoint = directionFromPreviousPoint.DirectionFromTo(directionFromNextPoint) * bezierControlPointDistance;
 
-            bezierPoint = new BezierPoint(pathCoordinates[i]);
-            bezierPoint.ControlPointTowardsPrevious = pathCoordinates[i] + directionForControlPoint;
-            bezierPoint.ControlPointTowardsNext = pathCoordinates[i] - directionForControlPoint;
-            bezierPoints[i] = bezierPoint;
+            CreateBezierPoint(i, pathCoordinates[i] - directionForControlPoint, pathCoordinates[i] + directionForControlPoint);
         }
 
-        //last point
-        Vector3 directionToPreviousPoint = pathCoordinates[pathCoordinates.Length - 1].DirectionFromTo(pathCoordinates[pathCoordinates.Length - 2]) * bezierControlPointDistance;
-        bezierPoint = new BezierPoint(pathCoordinates[pathCoordinates.Length - 1]);
-        bezierPoint.ControlPointTowardsPrevious = pathCoordinates[pathCoordinates.Length - 1] + directionToPreviousPoint;
-        bezierPoints[pathCoordinates.Length - 1] = bezierPoint;
+        HandleLastPoint(pathCoordinates.Length - 1);
 
         return bezierPoints;
+
+        void HandleFirstPoint(int index)
+        {
+            Vector3 directionToNextPoint = pathCoordinates[index].DirectionFromTo(pathCoordinates[index + 1]) * bezierControlPointDistance;
+            CreateBezierPoint(index, pathCoordinates[index] + directionToNextPoint);
+        }
+
+        void HandleLastPoint(int index)
+        {
+            Vector3 directionToPreviousPoint = pathCoordinates[index].DirectionFromTo(pathCoordinates[index - 1]) * bezierControlPointDistance;
+            CreateBezierPoint(index, controlPointTowardsPrevious: pathCoordinates[index] + directionToPreviousPoint);
+        }
+
+        void CreateBezierPoint(int index, Vector3 controlPointTowardsNext = default, Vector3 controlPointTowardsPrevious = default)
+        {
+            BezierPoint bezierPoint = new BezierPoint(pathCoordinates[index]);
+            bezierPoint.ControlPointTowardsPrevious = controlPointTowardsPrevious;
+            bezierPoint.ControlPointTowardsNext = controlPointTowardsNext;
+            bezierPoints[index] = bezierPoint;
+        }
     }
 
     private Vector3[] CalculateOffsetToSmoothCorners(Vector3[] pathCoordinates)

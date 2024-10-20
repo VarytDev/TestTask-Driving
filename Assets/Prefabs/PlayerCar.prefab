@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 3333335953834610291}
   - component: {fileID: 5225203304800611367}
   - component: {fileID: 449731878284663526}
+  - component: {fileID: 5631248000913972173}
   m_Layer: 0
   m_Name: PlayerCar
   m_TagString: Untagged
@@ -47,8 +48,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   navigationComponent: {fileID: 0}
-  carSpeed: 1
-  debugTargetNode: {fileID: 0}
+  pathType: 2
+  carSpeed: 2
+  bezierControlPointDistance: 0.4
+  offsetToSmoothCorners: 0.25
 --- !u!114 &449731878284663526
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -62,10 +65,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   movementController: {fileID: 5225203304800611367}
-  maxRayastLength: 20
-  raycastLayerMask:
+  interactionLayerMask:
     serializedVersion: 2
     m_Bits: 8
+--- !u!114 &5631248000913972173
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1257387849491051636}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c3f4954b9bc2934698f412ae779b5f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxRotationDelta: 1.5
 --- !u!1 &3260156282043222746
 GameObject:
   m_ObjectHideFlags: 0
@@ -91,13 +106,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3260156282043222746}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: -0.00000017881392, y: -0.70710653, z: 0.7071071, w: 0}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.1, y: 0.1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3333335953834610291}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 180}
 --- !u!212 &396402743941952322
 SpriteRenderer:
   m_ObjectHideFlags: 0
