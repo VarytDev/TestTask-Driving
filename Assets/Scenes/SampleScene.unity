@@ -622,6 +622,10 @@ PrefabInstance:
       propertyPath: navigationComponent
       value: 
       objectReference: {fileID: 336919574}
+    - target: {fileID: 5225203304800611367, guid: 8230bea33aca7674ab169e8126c5c141, type: 3}
+      propertyPath: bezierSmoothingFactor
+      value: 0.4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

@@ -87,53 +87,78 @@ public class CarMovementController : MonoBehaviour
     //TODO pls god, help me refactor this mess
     private Vector3[] CreateBezierControlPoints(Vector3[] pathCoordinates)
     {
-        List<Vector3> pathCoordinatesWithControlPoints = new();
         Vector3[] pathCoordinatesOffset = new Vector3[pathCoordinates.Length];
 
         //offset coordinate to the inside of the road
-        //for (int i = 0; i < pathCoordinates.Length; i++)
-        //{
-        //    if (i - 1 >= 0 && i + 1 < pathCoordinates.Length) //if previous and next point exist
-        //    {
-        //        Vector3 directionToPreviousPoint = (pathCoordinates[i - 1] - pathCoordinates[i]).normalized;
+        for (int i = 0; i < pathCoordinates.Length; i++)
+        {
+            if (i - 1 >= 0 && i + 1 < pathCoordinates.Length) //if previous and next point exist
+            {
+                Vector3 directionToPreviousPoint = (pathCoordinates[i - 1] - pathCoordinates[i]).normalized;
+                Vector3 directionToNextPoint = (pathCoordinates[i + 1] - pathCoordinates[i]).normalized;
 
-        //        Vector3 directionToNextPoint = (pathCoordinates[i + 1] - pathCoordinates[i]).normalized;
+                if(Mathf.Abs(Vector3.Dot(directionToPreviousPoint, directionToNextPoint)) > 0.9f)
+                {
+                    continue;
+                }
 
-        //        Vector3 directionSum = directionToPreviousPoint + directionToNextPoint;
+                Vector3 directionSum = directionToPreviousPoint + directionToNextPoint;
+                pathCoordinatesOffset[i] = directionSum.normalized * 0.25f;
+            }
+        }
 
-        //        if (directionSum.magnitude < float.Epsilon) continue;
-
-        //        pathCoordinatesOffset[i] = directionSum.normalized * 0.25f;
-        //    }
-        //}
+        BezierPoint[] bezierPoints = new BezierPoint[pathCoordinates.Length];
 
         for (int i = 0; i < pathCoordinates.Length; i++)
         {
-            //pathCoordinates[i] += pathCoordinatesOffset[i];
-
             if (i - 1 >= 0 && i + 1 < pathCoordinates.Length) //if previous and next point exist
             {
                 Vector3 directionFromPreviousPoint = (pathCoordinates[i] - pathCoordinates[i - 1]).normalized;
-                
                 Vector3 directionFromNextPoint = (pathCoordinates[i] - pathCoordinates[i + 1]).normalized;
-
                 Vector3 directionForControlPoint = (directionFromNextPoint - directionFromPreviousPoint).normalized * bezierSmoothingFactor;
 
-                pathCoordinatesWithControlPoints.Add(pathCoordinates[i] + directionForControlPoint);
-                pathCoordinatesWithControlPoints.Add(pathCoordinates[i + 1]);
-                pathCoordinatesWithControlPoints.Add(pathCoordinates[i] - directionForControlPoint);
+                BezierPoint bezierPoint = new BezierPoint(pathCoordinates[i]);
+                bezierPoint.ControlPointTowardsPrevious = pathCoordinates[i] + directionForControlPoint;
+                bezierPoint.ControlPointTowardsNext = pathCoordinates[i] - directionForControlPoint;
+                bezierPoints[i] = bezierPoint;
             }
             else if (i - 1 >= 0) //if previous point exist
             {
                 Vector3 directionBackward = (pathCoordinates[i - 1] - pathCoordinates[i]).normalized * bezierSmoothingFactor;
-                pathCoordinatesWithControlPoints.Add(pathCoordinates[i] + directionBackward);
+
+                BezierPoint bezierPoint = new BezierPoint(pathCoordinates[i]);
+                bezierPoint.ControlPointTowardsPrevious = pathCoordinates[i] + directionBackward;
+                bezierPoints[i] = bezierPoint;
 
             }
             else if (i + 1 < pathCoordinates.Length) //if next point exist
             {
                 Vector3 directionForward = (pathCoordinates[i + 1] - pathCoordinates[i]).normalized * bezierSmoothingFactor;
-                pathCoordinatesWithControlPoints.Add(pathCoordinates[i + 1]);
-                pathCoordinatesWithControlPoints.Add(pathCoordinates[i] + directionForward);
+
+                BezierPoint bezierPoint = new BezierPoint(pathCoordinates[i]);
+                bezierPoint.ControlPointTowardsNext = pathCoordinates[i] + directionForward;
+                bezierPoints[i] = bezierPoint;
+            }
+        }
+
+        for (int i = 0; i < bezierPoints.Length; i++)
+        {
+            bezierPoints[i].Offset(pathCoordinatesOffset[i]);
+        }
+
+        List<Vector3> pathCoordinatesWithControlPoints = new();
+
+        for (int i = 0; i < bezierPoints.Length; i++)
+        {
+            if (i - 1 >= 0) //if previous point exist
+            {
+                pathCoordinatesWithControlPoints.Add(bezierPoints[i].ControlPointTowardsPrevious);
+            }
+
+            if (i + 1 < pathCoordinates.Length) //if next point exist
+            {
+                pathCoordinatesWithControlPoints.Add(bezierPoints[i + 1].Point);
+                pathCoordinatesWithControlPoints.Add(bezierPoints[i].ControlPointTowardsNext);
             }
         }
 
@@ -165,6 +190,27 @@ public class CarMovementController : MonoBehaviour
         for (int i = 0;i < pathCoordinates.Length; i++) 
         {
             pathCoordinates[i] += offsets[i];
+        }
+    }
+
+    private struct BezierPoint
+    {
+        public BezierPoint(Vector3 point)
+        {
+            Point = point;
+            ControlPointTowardsPrevious = Vector3.zero;
+            ControlPointTowardsNext = Vector3.zero;
+        }
+
+        public Vector3 Point;
+        public Vector3 ControlPointTowardsPrevious;
+        public Vector3 ControlPointTowardsNext;
+
+        public void Offset(Vector3 offset)
+        {
+            Point += offset;
+            ControlPointTowardsPrevious += offset;
+            ControlPointTowardsNext += offset;
         }
     }
 }
