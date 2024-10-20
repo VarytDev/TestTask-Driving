@@ -9,6 +9,7 @@ public class CarMovementController : MonoBehaviour
     [SerializeField] private AStarNavigation navigationComponent = null;
     [SerializeField] private PathType pathType = PathType.Linear;
     [SerializeField] private float carSpeed = 5f;
+    [SerializeField] private float distanceFromCenterOfRoad = 0.25f;
     [SerializeField] private float bezierControlPointDistance = 0.4f;
     [SerializeField] private float offsetToSmoothCorners = 0.25f;
 
@@ -39,7 +40,7 @@ public class CarMovementController : MonoBehaviour
         }
 
         Vector3[] pathCoordinates = GetPathCoordinates(currentNode, target);
-        AdjustRouteToRightSideOfTheRoad(pathCoordinates, 0.25f);
+        AdjustRouteToRightSideOfTheRoad(pathCoordinates, distanceFromCenterOfRoad);
         if(pathType == PathType.CubicBezier) 
         {
             pathCoordinates = CreateCubicBezierPath(pathCoordinates);
