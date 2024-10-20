@@ -9,7 +9,8 @@ public class CarMovementController : MonoBehaviour
     [SerializeField] private AStarNavigation navigationComponent = null;
     [SerializeField] private PathType pathType = PathType.Linear;
     [SerializeField] private float carSpeed = 5f;
-    [SerializeField] private float bezierSmoothingFactor = 0.2f;
+    [SerializeField] private float bezierControlPointDistance = 0.4f;
+    [SerializeField] private float offsetToSmoothCorners = 0.25f;
 
     private Node currentNode = null;
     private Node requestedRouteChange = null;
@@ -43,7 +44,7 @@ public class CarMovementController : MonoBehaviour
         AdjustRouteToRightSideOfTheRoad(pathCoordinates, 0.25f);
         if(pathType == PathType.CubicBezier) 
         {
-            pathCoordinates = CreateBezierControlPoints(pathCoordinates);
+            pathCoordinates = CreateCubicBezierPath(pathCoordinates);
         }
 
         currentRouteTween = gameObject.transform.DOPath(pathCoordinates, CalculatePathTime(pathCoordinates), pathType)
@@ -84,78 +85,31 @@ public class CarMovementController : MonoBehaviour
         return GetPathLength(coordinates) / carSpeed;
     }
 
-    //TODO pls god, help me refactor this mess
-    private Vector3[] CreateBezierControlPoints(Vector3[] pathCoordinates)
+    private Vector3[] CreateCubicBezierPath(Vector3[] pathCoordinates)
     {
-        Vector3[] pathCoordinatesOffset = new Vector3[pathCoordinates.Length];
-
-        //offset coordinate to the inside of the road
-        for (int i = 0; i < pathCoordinates.Length; i++)
-        {
-            if (i - 1 >= 0 && i + 1 < pathCoordinates.Length) //if previous and next point exist
-            {
-                Vector3 directionToPreviousPoint = (pathCoordinates[i - 1] - pathCoordinates[i]).normalized;
-                Vector3 directionToNextPoint = (pathCoordinates[i + 1] - pathCoordinates[i]).normalized;
-
-                if(Mathf.Abs(Vector3.Dot(directionToPreviousPoint, directionToNextPoint)) > 0.9f)
-                {
-                    continue;
-                }
-
-                Vector3 directionSum = directionToPreviousPoint + directionToNextPoint;
-                pathCoordinatesOffset[i] = directionSum.normalized * 0.25f;
-            }
-        }
-
-        BezierPoint[] bezierPoints = new BezierPoint[pathCoordinates.Length];
-
-        for (int i = 0; i < pathCoordinates.Length; i++)
-        {
-            if (i - 1 >= 0 && i + 1 < pathCoordinates.Length) //if previous and next point exist
-            {
-                Vector3 directionFromPreviousPoint = (pathCoordinates[i] - pathCoordinates[i - 1]).normalized;
-                Vector3 directionFromNextPoint = (pathCoordinates[i] - pathCoordinates[i + 1]).normalized;
-                Vector3 directionForControlPoint = (directionFromNextPoint - directionFromPreviousPoint).normalized * bezierSmoothingFactor;
-
-                BezierPoint bezierPoint = new BezierPoint(pathCoordinates[i]);
-                bezierPoint.ControlPointTowardsPrevious = pathCoordinates[i] + directionForControlPoint;
-                bezierPoint.ControlPointTowardsNext = pathCoordinates[i] - directionForControlPoint;
-                bezierPoints[i] = bezierPoint;
-            }
-            else if (i - 1 >= 0) //if previous point exist
-            {
-                Vector3 directionBackward = (pathCoordinates[i - 1] - pathCoordinates[i]).normalized * bezierSmoothingFactor;
-
-                BezierPoint bezierPoint = new BezierPoint(pathCoordinates[i]);
-                bezierPoint.ControlPointTowardsPrevious = pathCoordinates[i] + directionBackward;
-                bezierPoints[i] = bezierPoint;
-
-            }
-            else if (i + 1 < pathCoordinates.Length) //if next point exist
-            {
-                Vector3 directionForward = (pathCoordinates[i + 1] - pathCoordinates[i]).normalized * bezierSmoothingFactor;
-
-                BezierPoint bezierPoint = new BezierPoint(pathCoordinates[i]);
-                bezierPoint.ControlPointTowardsNext = pathCoordinates[i] + directionForward;
-                bezierPoints[i] = bezierPoint;
-            }
-        }
+        Vector3[] pathCoordinatesOffset = CalculateOffsetToSmoothCorners(pathCoordinates);
+        BezierPoint[] bezierPoints = GenerateBezierControlPoints(pathCoordinates);
 
         for (int i = 0; i < bezierPoints.Length; i++)
         {
             bezierPoints[i].Offset(pathCoordinatesOffset[i]);
         }
 
+        return ConvertBezierPointsToCubicBezierPathCoordinates(bezierPoints, pathCoordinatesOffset);
+    }
+
+    private Vector3[] ConvertBezierPointsToCubicBezierPathCoordinates(BezierPoint[] bezierPoints, Vector3[] pathCoordinatesOffset)
+    {
         List<Vector3> pathCoordinatesWithControlPoints = new();
 
         for (int i = 0; i < bezierPoints.Length; i++)
         {
-            if (i - 1 >= 0) //if previous point exist
+            if (bezierPoints.IsInRange(i - 1))
             {
                 pathCoordinatesWithControlPoints.Add(bezierPoints[i].ControlPointTowardsPrevious);
             }
 
-            if (i + 1 < pathCoordinates.Length) //if next point exist
+            if (bezierPoints.IsInRange(i + 1))
             {
                 pathCoordinatesWithControlPoints.Add(bezierPoints[i + 1].Point);
                 pathCoordinatesWithControlPoints.Add(bezierPoints[i].ControlPointTowardsNext);
@@ -165,7 +119,6 @@ public class CarMovementController : MonoBehaviour
         return pathCoordinatesWithControlPoints.ToArray();
     }
 
-    //TODO Refactor this
     private void AdjustRouteToRightSideOfTheRoad(Vector3[] pathCoordinates, float offsetFromCenter)
     {
         Vector3[] offsets = new Vector3[pathCoordinates.Length];
@@ -174,14 +127,14 @@ public class CarMovementController : MonoBehaviour
         {
             Vector3 direction = Vector3.zero;
 
-            if (i - 1 >= 0) //if previous point exist
+            if (pathCoordinates.IsInRange(i - 1))
             {
-                direction += Quaternion.AngleAxis(-90, Vector3.forward) * (pathCoordinates[i] - pathCoordinates[i - 1]).normalized;
+                direction += Quaternion.AngleAxis(-90, Vector3.forward) * pathCoordinates[i - 1].DirectionFromTo(pathCoordinates[i]);
             }
 
-            if (i + 1 < pathCoordinates.Length) //if next point exist
+            if (pathCoordinates.IsInRange(i + 1))
             {
-                direction += Quaternion.AngleAxis(90, Vector3.forward) * (pathCoordinates[i] - pathCoordinates[i + 1]).normalized;
+                direction += Quaternion.AngleAxis(90, Vector3.forward) * pathCoordinates[i + 1].DirectionFromTo(pathCoordinates[i]);
             }
 
             offsets[i] = direction.normalized * offsetFromCenter;
@@ -191,6 +144,65 @@ public class CarMovementController : MonoBehaviour
         {
             pathCoordinates[i] += offsets[i];
         }
+    }
+
+    //TODO Refactor further
+    private BezierPoint[] GenerateBezierControlPoints(Vector3[] pathCoordinates)
+    {
+        BezierPoint[] bezierPoints = new BezierPoint[pathCoordinates.Length];
+
+        //first point
+        Vector3 directionToNextPoint = pathCoordinates[0].DirectionFromTo(pathCoordinates[1]) * bezierControlPointDistance;
+        BezierPoint bezierPoint = new BezierPoint(pathCoordinates[0]);
+        bezierPoint.ControlPointTowardsNext = pathCoordinates[0] + directionToNextPoint;
+        bezierPoints[0] = bezierPoint;
+
+        //middle points
+        for (int i = 1; i < pathCoordinates.Length - 1; i++)
+        {
+            Vector3 directionFromPreviousPoint = pathCoordinates[i - 1].DirectionFromTo(pathCoordinates[i]);
+            Vector3 directionFromNextPoint = pathCoordinates[i + 1].DirectionFromTo(pathCoordinates[i]);
+            Vector3 directionForControlPoint = directionFromPreviousPoint.DirectionFromTo(directionFromNextPoint) * bezierControlPointDistance;
+
+            bezierPoint = new BezierPoint(pathCoordinates[i]);
+            bezierPoint.ControlPointTowardsPrevious = pathCoordinates[i] + directionForControlPoint;
+            bezierPoint.ControlPointTowardsNext = pathCoordinates[i] - directionForControlPoint;
+            bezierPoints[i] = bezierPoint;
+        }
+
+        //last point
+        Vector3 directionToPreviousPoint = pathCoordinates[pathCoordinates.Length - 1].DirectionFromTo(pathCoordinates[pathCoordinates.Length - 2]) * bezierControlPointDistance;
+        bezierPoint = new BezierPoint(pathCoordinates[pathCoordinates.Length - 1]);
+        bezierPoint.ControlPointTowardsPrevious = pathCoordinates[pathCoordinates.Length - 1] + directionToPreviousPoint;
+        bezierPoints[pathCoordinates.Length - 1] = bezierPoint;
+
+        return bezierPoints;
+    }
+
+    private Vector3[] CalculateOffsetToSmoothCorners(Vector3[] pathCoordinates)
+    {
+        Vector3[] pathCoordinatesOffset = new Vector3[pathCoordinates.Length];
+
+        //offset coordinate to the inside of the road (only for points that have point before and after)
+        for (int i = 1; i < pathCoordinates.Length - 1; i++)
+        {
+            Vector3 directionToPreviousPoint = pathCoordinates[i].DirectionFromTo(pathCoordinates[i - 1]);
+            Vector3 directionToNextPoint = pathCoordinates[i].DirectionFromTo(pathCoordinates[i + 1]);
+
+            Vector3 directionSum = directionToPreviousPoint + directionToNextPoint;
+            pathCoordinatesOffset[i] = directionSum.normalized * offsetToSmoothCorners * GetNormalizedTurnSharpness(directionToPreviousPoint, directionToNextPoint);
+        }
+
+        return pathCoordinatesOffset;
+    }
+
+    /// <summary>
+    /// Returns normalized turn sharpness where the more perpendicular the turn the bigger value is returned
+    /// </summary>
+    /// <returns></returns>
+    private float GetNormalizedTurnSharpness(Vector3 directionToPreviousPoint, Vector3 directionToNextPoint)
+    {
+        return (Mathf.Abs(Vector3.Dot(directionToPreviousPoint, directionToNextPoint)) - 1) * -1;
     }
 
     private struct BezierPoint
