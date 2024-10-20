@@ -13,7 +13,6 @@ public class CarMovementController : MonoBehaviour
     [SerializeField] private float offsetToSmoothCorners = 0.25f;
 
     private Node currentNode = null;
-    private Node requestedRouteChange = null;
     private Tween currentRouteTween = null;
 
     private void Start()
@@ -36,7 +35,6 @@ public class CarMovementController : MonoBehaviour
 
         if(currentRouteTween.IsActive() && currentRouteTween.IsPlaying())
         {
-            requestedRouteChange = target;
             return;
         }
 
@@ -49,24 +47,7 @@ public class CarMovementController : MonoBehaviour
 
         currentRouteTween = gameObject.transform.DOPath(pathCoordinates, CalculatePathTime(pathCoordinates), pathType)
             .SetEase(Ease.InOutSine)
-            .OnStepComplete(OnRouteStepCompleated)
             .OnComplete(()=> OnRouteCompleated(target));
-    }
-
-    private void OnRouteStepCompleated()
-    {
-        if(requestedRouteChange != null)
-        {
-            AbortRoute();
-            GoToNode(requestedRouteChange);
-            requestedRouteChange = null;
-        }
-    }
-
-    private void AbortRoute()
-    {
-        currentRouteTween.Kill();
-        SnapToClosestNode();
     }
 
     private void OnRouteCompleated(Node target)

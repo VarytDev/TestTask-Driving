@@ -20,7 +20,7 @@ public class CarRotationHandler : MonoBehaviour
             UpdateTargetRotation();
         }
 
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(targetDirection, Vector3.back), maxRotationDelta);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(targetDirection, Vector3.back), maxRotationDelta * 100 * Time.deltaTime);
     }
 
     private void UpdateTargetRotation()

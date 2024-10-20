@@ -380,7 +380,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c3f4954b9bc2934698f412ae779b5f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxRotationDelta: 0.3
+  maxRotationDelta: 1.5
 --- !u!114 &1175156720 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3409543994986013457, guid: 14f54b65410562c469fd6fa3f742df6f, type: 3}
