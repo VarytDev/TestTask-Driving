@@ -1,3 +1,4 @@
+using BS.Pathfinding;
 using UnityEngine;
 
 public class CarInteractionHandler : MonoBehaviour
@@ -7,23 +8,33 @@ public class CarInteractionHandler : MonoBehaviour
 
     private void Update()
     {
-        if(Input.GetMouseButtonDown(0) && TryFindParkingSpot(out ParkingSpot foundSpot) && foundSpot.AssignedNode != null)
+        if(Input.GetMouseButtonDown(0) && TryFindInteractable(out IInteractable foundInteractable))
         {
-            movementController.GoToNode(foundSpot.AssignedNode);
+            foundInteractable.OnInteract(this);
         }
     }
 
-    //TODO implement interactable interface
-    private bool TryFindParkingSpot(out ParkingSpot foundSpot)
+    public void GoToNode(Node targetNode)
+    {
+        if(!movementController)
+        {
+            Debug.LogWarning($"{this} :: Can't start a route, movement controller is null!");
+            return;
+        }
+
+        movementController.GoToNode(targetNode);
+    }
+
+    private bool TryFindInteractable(out IInteractable foundInteractable)
     {
         Vector2 worldPoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Collider2D hitCollider = Physics2D.OverlapPoint(worldPoint, interactionLayerMask);
-        if (hitCollider != null && hitCollider.TryGetComponent(out foundSpot))
+        if (hitCollider != null && hitCollider.TryGetComponent(out foundInteractable))
         {
             return true;
         }
 
-        foundSpot = null;
+        foundInteractable = null;
         return false;
     }
 }

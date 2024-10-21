@@ -34,7 +34,7 @@ namespace BS.Pathfinding
 
             if(!activeObject.TryGetComponent(out Node targetNode) && activeObject.TryGetComponent(out ParkingSpot foundSpot))
             {
-                targetNode = foundSpot.AssignedNode;
+                targetNode = foundSpot.GetAssignedNode();
             }
             else if (targetNode == null)
             {
