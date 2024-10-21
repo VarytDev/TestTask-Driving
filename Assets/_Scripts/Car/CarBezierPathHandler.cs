@@ -16,7 +16,7 @@ public class CarBezierPathHandler : MonoBehaviour
             bezierPoints[i].Offset(pathCoordinatesOffset[i]);
         }
 
-        return ConvertBezierPointsToCubicBezierPathCoordinates(bezierPoints, pathCoordinatesOffset);
+        return ConvertBezierPointsToCubicBezierPathCoordinates(bezierPoints);
     }
 
     private BezierPoint[] GenerateBezierControlPoints(Vector3[] pathCoordinates)
@@ -59,7 +59,7 @@ public class CarBezierPathHandler : MonoBehaviour
         }
     }
 
-    private Vector3[] ConvertBezierPointsToCubicBezierPathCoordinates(BezierPoint[] bezierPoints, Vector3[] pathCoordinatesOffset)
+    private Vector3[] ConvertBezierPointsToCubicBezierPathCoordinates(BezierPoint[] bezierPoints)
     {
         List<Vector3> pathCoordinatesWithControlPoints = new();
 
