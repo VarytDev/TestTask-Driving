@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5225203304800611367}
   - component: {fileID: 449731878284663526}
   - component: {fileID: 5631248000913972173}
+  - component: {fileID: 7939005522271658012}
   m_Layer: 0
   m_Name: PlayerCar
   m_TagString: Untagged
@@ -48,10 +49,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   navigationComponent: {fileID: 0}
+  bezierPathHandler: {fileID: 7939005522271658012}
   pathType: 2
   carSpeed: 2
-  bezierControlPointDistance: 0.4
-  offsetToSmoothCorners: 0.25
+  distanceFromCenterOfRoad: 0.25
 --- !u!114 &449731878284663526
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -81,6 +82,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxRotationDelta: 1.5
+--- !u!114 &7939005522271658012
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1257387849491051636}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fbd27e202de8ad34eb55aeb4e22a4358, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bezierControlPointDistance: 0.4
+  offsetToSmoothCorners: 0.25
 --- !u!1 &3260156282043222746
 GameObject:
   m_ObjectHideFlags: 0
